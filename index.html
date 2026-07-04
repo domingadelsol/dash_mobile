@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dash</title>
+<style>
+  :root{
+    --bg:#f6f6f9;
+    --card:#ffffff;
+    --text-dark:#1f2129;
+    --text-mid:#75757f;
+    --text-light:#a4a4ad;
+    --border:#eeeef2;
+    --blue-pill:#9dc0f8;
+    --blue-pill-text:#1c3f96;
+    --accent-blue:#4f7cf0;
+    --green-a:#3fc79a;
+    --green-b:#93e3c2;
+    --pink-a:#ef9c9c;
+    --pink-b:#f6c6bd;
+    --orange-a:#f49a63;
+    --orange-b:#fac997;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0;
+    background:#e2e4e9;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text-dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 16px;
+  }
+
+  /* iPhone 13 frame */
+  .phone-frame{
+    position:relative;
+    width:390px;
+    height:844px;
+    background:linear-gradient(160deg,#3a3b40,#111214);
+    border-radius:58px;
+    padding:12px;
+    box-shadow:
+      0 40px 80px rgba(0,0,0,0.35),
+      0 10px 25px rgba(0,0,0,0.25),
+      inset 0 0 0 2px rgba(255,255,255,0.06);
+    flex-shrink:0;
+  }
+  .phone-screen{
+    position:relative;
+    width:100%;
+    height:100%;
+    background:var(--bg);
+    border-radius:46px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:154px;
+    height:32px;
+    background:#0b0b0c;
+    border-radius:0 0 22px 22px;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .notch .cam{ width:10px; height:10px; border-radius:50%; background:#1c2733; box-shadow:inset 0 0 2px rgba(255,255,255,0.15); }
+  .notch .speaker{ width:46px; height:6px; border-radius:4px; background:#17181b; }
+
+  .status-bar{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 30px 4px;
+    font-size:15px;
+    font-weight:600;
+    color:var(--text-dark);
+  }
+  .status-icons{ display:flex; align-items:center; gap:6px; }
+
+  .fixed-top{
+    flex-shrink:0;
+    background:var(--bg);
+    position:relative;
+    z-index:15;
+  }
+
+  .screen-scroll{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .home-indicator{
+    position:absolute;
+    bottom:8px;
+    left:50%;
+    transform:translateX(-50%);
+    width:134px;
+    height:5px;
+    border-radius:3px;
+    background:#000;
+    opacity:0.28;
+    z-index:20;
+  }
+
+  /* Side buttons */
+  .side-btn{ position:absolute; background:#111214; }
+  .btn-mute{ left:-3px; top:118px; width:3px; height:32px; border-radius:2px 0 0 2px; }
+  .btn-vol-up{ left:-3px; top:168px; width:3px; height:58px; border-radius:2px 0 0 2px; }
+  .btn-vol-down{ left:-3px; top:238px; width:3px; height:58px; border-radius:2px 0 0 2px; }
+  .btn-power{ right:-3px; top:190px; width:3px; height:90px; border-radius:0 2px 2px 0; }
+
+  .app{
+    max-width:400px;
+    margin:0 auto;
+    background:var(--bg);
+    padding-bottom:20px;
+  }
+
+  /* Header */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 18px 4px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:15px;
+    font-weight:700;
+    color:var(--text-dark);
+  }
+  .brand svg{ display:block; }
+  .user{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-dark);
+    flex:1;
+    margin-left:14px;
+  }
+  .avatar{
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#f6a659,#ef7a44);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .menu-btn{
+    background:none; border:none; padding:4px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+
+  /* Segment control */
+  .segment{
+    display:flex;
+    align-items:center;
+    background:#eceef2;
+    border-radius:22px;
+    padding:4px;
+    margin:14px 18px 18px;
+  }
+  .segment button{
+    -webkit-appearance:none;
+    appearance:none;
+    outline:none;
+    margin:0;
+    font-family:inherit;
+    line-height:1;
+    flex:1;
+  }
+  .seg-pill{
+    display:block;
+    width:100%;
+    background:var(--blue-pill);
+    color:var(--blue-pill-text);
+    border:none;
+    padding:11px 0;
+    font-size:14px;
+    font-weight:600;
+    border-radius:18px;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(28,63,150,0.28);
+    text-align:center;
+  }
+  .seg-plain{
+    display:block;
+    width:100%;
+    background:none;
+    border:none;
+    padding:11px 0;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text-light);
+    cursor:pointer;
+    text-align:center;
+  }
+
+  /* Stat cards */
+  .stats{
+    display:flex;
+    gap:10px;
+    padding:0 18px 18px;
+  }
+  .stat-card{
+    flex:1;
+    border-radius:20px;
+    padding:16px 14px;
+    color:#fff;
+    min-height:98px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .stat-card.green{ background:linear-gradient(135deg,var(--green-a),var(--green-b)); }
+  .stat-card.pink{ background:linear-gradient(135deg,var(--pink-a),var(--pink-b)); }
+  .stat-card.orange{ background:linear-gradient(135deg,var(--orange-a),var(--orange-b)); }
+  .stat-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .stat-num{
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:-0.5px;
+  }
+  .stat-label{
+    font-size:13px;
+    font-weight:600;
+  }
+
+  /* Collapsible widgets */
+  .widgets{
+    padding:0 18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .widget{
+    background:var(--card);
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .widget-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 16px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .widget-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--text-dark);
+  }
+  .chevron{
+    transition:transform .25s ease;
+    color:var(--accent-blue);
+    display:flex;
+    flex-shrink:0;
+  }
+  .widget.open .chevron{ transform:rotate(180deg); }
+  .widget-actions{
+    display:none;
+    align-items:center;
+    gap:14px;
+    color:var(--accent-blue);
+  }
+  .widget.open .widget-actions{
+    display:flex;
+  }
+  .widget-actions svg{ display:block; cursor:pointer; }
+
+  .widget-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease;
+  }
+  .widget-body-inner{
+    padding:0 16px 20px;
+  }
+  .empty-note{
+    font-size:13px;
+    color:var(--text-light);
+    padding-top:2px;
+    margin:0;
+  }
+
+  /* Bar chart */
+  .chart{
+    display:flex;
+    height:160px;
+    position:relative;
+  }
+  .chart-yaxis{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    font-size:10.5px;
+    color:var(--text-light);
+    width:18px;
+    padding-bottom:22px;
+    text-align:left;
+  }
+  .chart-bars{
+    display:flex;
+    align-items:flex-end;
+    flex:1;
+    height:138px;
+  }
+  .bar-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    height:100%;
+    flex:1;
+  }
+  .bar-track{
+    position:relative;
+    width:50%;
+    height:100%;
+    border-radius:999px;
+    background:#eef0f3;
+    overflow:hidden;
+  }
+  .bar-fill{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    border-radius:999px;
+    background-image:linear-gradient(180deg,#7fd6c0 0%, #cfe3c9 30%, #f3cfa8 65%, #f3aba7 100%);
+    background-size:100% 138px;
+    background-position:bottom;
+    background-repeat:no-repeat;
+  }
+  .bar-day{
+    margin-top:8px;
+    font-size:11px;
+    color:var(--text-light);
+  }
+
+  /* Table */
+  .table-wrap{
+    height:160px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .table-wrap::-webkit-scrollbar{ width:4px; }
+  .table-wrap::-webkit-scrollbar-track{ background:transparent; }
+  .table-wrap::-webkit-scrollbar-thumb{ background:var(--accent-blue); border-radius:4px; }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  thead th{
+    text-align:left;
+    font-weight:600;
+    color:var(--text-light);
+    font-size:12px;
+    padding-bottom:10px;
+    position:sticky;
+    top:0;
+    background:var(--card);
+  }
+  tbody td{
+    padding:10px 4px;
+    border-top:1px solid var(--border);
+    color:var(--text-dark);
+    white-space:nowrap;
+    font-weight:500;
+  }
+  .code-cell{
+    color:var(--text-light);
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+  .code-dots{
+    letter-spacing:2px;
+  }
+
+  /* Add widget button */
+  .add-widget{
+    margin:20px 18px 0;
+    display:flex;
+    justify-content:center;
+  }
+  .add-widget button{
+    background:var(--blue-pill);
+    border:none;
+    border-radius:24px;
+    padding:13px 28px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--blue-pill-text);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(28,63,150,0.28);
+  }
+  .add-widget button:active{ background:#8fb6f5; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="side-btn btn-mute"></div>
+  <div class="side-btn btn-vol-up"></div>
+  <div class="side-btn btn-vol-down"></div>
+  <div class="side-btn btn-power"></div>
+  <div class="phone-screen">
+    <div class="notch">
+      <div class="speaker"></div>
+      <div class="cam"></div>
+    </div>
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#1f2129"/><rect x="5" y="5" width="3" height="7" rx="0.5" fill="#1f2129"/><rect x="10" y="3" width="3" height="9" rx="0.5" fill="#1f2129"/><rect x="15" y="0" width="3" height="12" rx="0.5" fill="#1f2129"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z" fill="#1f2129"/><path d="M4.5 6.8a5 5 0 017 0l-1.1 1.1a3.4 3.4 0 00-4.8 0L4.5 6.8z" fill="#1f2129"/><path d="M2 4.2a8.6 8.6 0 0112 0L12.9 5.3a7 7 0 00-9.8 0L2 4.2z" fill="#1f2129"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.75" y="0.75" width="20.5" height="10.5" rx="2.5" stroke="#1f2129" stroke-width="1"/><rect x="2.2" y="2.2" width="16" height="7.6" rx="1.3" fill="#1f2129"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#1f2129"/></svg>
+      </div>
+    </div>
+    <div class="fixed-top">
+      <header>
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="4" height="10" rx="1.5" fill="#4f7cf0"/>
+            <rect x="10" y="5" width="4" height="16" rx="1.5" fill="#4f7cf0"/>
+            <rect x="17" y="14" width="4" height="7" rx="1.5" fill="#4f7cf0"/>
+          </svg>
+          Dash
+        </div>
+        <div class="user">
+          <div class="avatar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" fill="#fff"/>
+              <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="#fff"/>
+            </svg>
+          </div>
+          Max Weber
+        </div>
+        <button class="menu-btn" aria-label="Abrir menú">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="#1f2129" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="segment">
+        <button class="seg-pill" id="tab-general">General</button>
+        <button class="seg-plain" id="tab-client1">Client 1</button>
+      </div>
+    </div>
+
+    <div class="screen-scroll">
+<div class="app">
+
+  <div class="stats">
+    <div class="stat-card green">
+      <div class="stat-top">
+        <span class="stat-num">06</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H10M17 7V14" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="stat-label">New Request</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-top">
+        <span class="stat-num">02</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 7L17 17M10 17H17M17 17V10" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="stat-label">New Quotes</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-top">
+        <span class="stat-num">04</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 9h14M5 15h14" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="stat-label">New Orders</div>
+    </div>
+  </div>
+
+  <div class="widgets" id="widgets">
+
+    <div class="widget" data-name="highlights">
+      <div class="widget-header" onclick="toggleWidget(this.parentElement)">
+        <div class="widget-title">
+          <span class="chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#4f7cf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Today's highlights
+        </div>
+        <div class="widget-actions">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><path d="M4 5h16l-6 8.5v5.5l-4 2v-7.5L4 5z" stroke="#4f7cf0" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><circle cx="12" cy="5" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="12" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="19" r="1.7" fill="#4f7cf0"/></svg>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="widget-body-inner">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Job</th><th>Client</th><th>Deadline</th></tr>
+              </thead>
+              <tbody id="highlights-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget" data-name="tasks">
+      <div class="widget-header" onclick="toggleWidget(this.parentElement)">
+        <div class="widget-title">
+          <span class="chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#4f7cf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          My marked tasks
+        </div>
+        <div class="widget-actions">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><path d="M4 5h16l-6 8.5v5.5l-4 2v-7.5L4 5z" stroke="#4f7cf0" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><circle cx="12" cy="5" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="12" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="19" r="1.7" fill="#4f7cf0"/></svg>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="widget-body-inner">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Job</th><th>Client</th><th>Deadline</th></tr>
+              </thead>
+              <tbody id="tasks-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget" data-name="overdue">
+      <div class="widget-header" onclick="toggleWidget(this.parentElement)">
+        <div class="widget-title">
+          <span class="chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#4f7cf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Overdue orders
+        </div>
+        <div class="widget-actions">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><path d="M4 5h16l-6 8.5v5.5l-4 2v-7.5L4 5z" stroke="#4f7cf0" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><circle cx="12" cy="5" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="12" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="19" r="1.7" fill="#4f7cf0"/></svg>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="widget-body-inner">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Job</th><th>Client</th><th>Deadline</th></tr>
+              </thead>
+              <tbody id="overdue-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget open" data-name="history">
+      <div class="widget-header" onclick="toggleWidget(this.parentElement)">
+        <div class="widget-title">
+          <span class="chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#4f7cf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          7-day request history
+        </div>
+        <div class="widget-actions">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><circle cx="12" cy="5" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="12" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="19" r="1.7" fill="#4f7cf0"/></svg>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="widget-body-inner">
+          <div class="chart">
+            <div class="chart-yaxis">
+              <span>10</span><span>8</span><span>6</span><span>4</span><span>2</span><span>0</span>
+            </div>
+            <div class="chart-bars" id="chart-bars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget open" data-name="open-items">
+      <div class="widget-header" onclick="toggleWidget(this.parentElement)">
+        <div class="widget-title">
+          <span class="chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#4f7cf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          My open items
+        </div>
+        <div class="widget-actions">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><path d="M4 5h16l-6 8.5v5.5l-4 2v-7.5L4 5z" stroke="#4f7cf0" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" onclick="event.stopPropagation()"><circle cx="12" cy="5" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="12" r="1.7" fill="#4f7cf0"/><circle cx="12" cy="19" r="1.7" fill="#4f7cf0"/></svg>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="widget-body-inner">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Job</th><th>Client</th><th>Deadline</th></tr>
+              </thead>
+              <tbody id="open-items-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="add-widget">
+    <button type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#1c3f96" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Add widget
+    </button>
+  </div>
+
+</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<script>
+  var chartData = [
+    {day:"Mon", value:1},
+    {day:"Tue", value:4},
+    {day:"Wed", value:6},
+    {day:"Thu", value:3},
+    {day:"Fri", value:2},
+    {day:"Sat", value:4},
+    {day:"Sun", value:7}
+  ];
+
+  var highlightsData = [
+    {code:"789", job:"EN/DE/FR/IT", client:"Nordic AB", deadline:"03.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Solvex", deadline:"03.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Arbus", deadline:"02.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"01.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Media Log", deadline:"30.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Mirgam", deadline:"29.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"BMW", deadline:"28.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Solvex", deadline:"27.06.26"}
+  ];
+
+  var tasksData = [
+    {code:"789", job:"EN/DE/FR/IT", client:"Media Log", deadline:"05.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"BMW", deadline:"08.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"10.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Arbus", deadline:"12.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Nordic AB", deadline:"14.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Mirgam", deadline:"16.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Solvex", deadline:"18.07.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"20.07.26"}
+  ];
+
+  var overdueData = [
+    {code:"789", job:"EN/DE/FR/IT", client:"Mirgam", deadline:"28.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"25.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Arbus", deadline:"20.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"BMW", deadline:"18.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Media Log", deadline:"15.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Nordic AB", deadline:"12.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Solvex", deadline:"10.06.26"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"08.06.26"}
+  ];
+
+  var openItems = [
+    {code:"789", job:"EN/DE/FR/IT", client:"Arbus", deadline:"10.02.25"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Media Log", deadline:"09.02.25"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"20.07.24"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"31.06.24"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Mirgam", deadline:"27.06.24"},
+    {code:"789", job:"EN/DE/FR/IT", client:"Mirgam", deadline:"22.06.24"},
+    {code:"789", job:"EN/DE/FR/IT", client:"BMW", deadline:"20.06.24"},
+    {code:"789", job:"EN/DE/FR/IT", client:"EU", deadline:"16.06.24"}
+  ];
+
+  function buildChart(){
+    var container = document.getElementById('chart-bars');
+    var maxVal = 10;
+    chartData.forEach(function(d){
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+
+      var track = document.createElement('div');
+      track.className = 'bar-track';
+
+      var fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      var fillPct = (d.value / maxVal) * 100;
+      fill.style.height = fillPct + '%';
+
+      track.appendChild(fill);
+      col.appendChild(track);
+
+      var label = document.createElement('div');
+      label.className = 'bar-day';
+      label.textContent = d.day;
+      col.appendChild(label);
+
+      container.appendChild(col);
+    });
+  }
+
+  function renderTable(tbodyId, data){
+    var body = document.getElementById(tbodyId);
+    data.forEach(function(item){
+      var tr = document.createElement('tr');
+      var codeSpan = document.createElement('td');
+      var wrap = document.createElement('span');
+      wrap.className = 'code-cell';
+      var dots = document.createElement('span');
+      dots.className = 'code-dots';
+      dots.textContent = '\u00B7\u00B7\u00B7';
+      wrap.appendChild(dots);
+      wrap.appendChild(document.createTextNode(item.code));
+      codeSpan.appendChild(wrap);
+      tr.appendChild(codeSpan);
+
+      ['job','client','deadline'].forEach(function(key){
+        var td = document.createElement('td');
+        td.textContent = item[key];
+        tr.appendChild(td);
+      });
+
+      body.appendChild(tr);
+    });
+  }
+
+  function buildTable(){
+    var body = document.getElementById('open-items-body');
+    openItems.forEach(function(item){
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><span class="code-cell"><span class="code-dots">···</span>' + item.code + '</span></td>' +
+        '<td>' + item.job + '</td>' +
+        '<td>' + item.client + '</td>' +
+        '<td>' + item.deadline + '</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  function toggleWidget(widgetEl){
+    var body = widgetEl.querySelector('.widget-body');
+    var isOpen = widgetEl.classList.contains('open');
+    if(isOpen){
+      body.style.maxHeight = body.scrollHeight + 'px';
+      requestAnimationFrame(function(){
+        body.style.maxHeight = '0px';
+      });
+      widgetEl.classList.remove('open');
+    } else {
+      widgetEl.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.addEventListener('transitionend', function handler(){
+        if(widgetEl.classList.contains('open')){
+          body.style.maxHeight = 'none';
+        }
+        body.removeEventListener('transitionend', handler);
+      });
+    }
+  }
+
+  function initOpenStates(){
+    document.querySelectorAll('.widget').forEach(function(w){
+      var body = w.querySelector('.widget-body');
+      if(w.classList.contains('open')){
+        body.style.maxHeight = 'none';
+      } else {
+        body.style.maxHeight = '0px';
+      }
+    });
+  }
+
+  var tabGeneral = document.getElementById('tab-general');
+  var tabClient1 = document.getElementById('tab-client1');
+
+  tabGeneral.addEventListener('click', function(){
+    tabGeneral.className = 'seg-pill';
+    tabClient1.className = 'seg-plain';
+  });
+  tabClient1.addEventListener('click', function(){
+    tabClient1.className = 'seg-pill';
+    tabGeneral.className = 'seg-plain';
+  });
+
+  buildChart();
+  renderTable('highlights-body', highlightsData);
+  renderTable('tasks-body', tasksData);
+  renderTable('overdue-body', overdueData);
+  buildTable();
+  initOpenStates();
+</script>
+</body>
+</html>
